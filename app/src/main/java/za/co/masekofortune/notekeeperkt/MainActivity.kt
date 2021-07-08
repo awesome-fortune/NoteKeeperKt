@@ -1,6 +1,7 @@
 package za.co.masekofortune.notekeeperkt
 
 import android.os.Bundle
+import android.os.PersistableBundle
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
@@ -27,10 +28,19 @@ class MainActivity : AppCompatActivity() {
 
         binding.spinnerCourses.adapter = adapterCourses
 
-        notePosition = intent.getIntExtra(EXTRA_NOTE_POSITION, POSITION_NOT_SET)
+        notePosition = savedInstanceState?.getInt(
+            NOTE_POSITION,
+            POSITION_NOT_SET
+        ) ?: intent.getIntExtra(
+            NOTE_POSITION,
+            POSITION_NOT_SET
+        )
 
         if (notePosition != POSITION_NOT_SET) {
             displayNote()
+        } else {
+            DataManager.notes.add(NoteInfo())
+            notePosition = DataManager.notes.lastIndex
         }
     }
 
@@ -51,11 +61,52 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_settings -> true
+            R.id.action_next -> {
+                moveNext()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
+        outState.putInt(NOTE_POSITION, notePosition)
+
+        super.onSaveInstanceState(outState, outPersistentState)
+    }
+
+    private fun moveNext() {
+        ++notePosition
+        displayNote()
+        invalidateOptionsMenu()
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         return super.onSupportNavigateUp()
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        if (notePosition >= DataManager.notes.lastIndex) {
+            val menuItem = menu?.findItem(R.id.action_next)
+            menuItem.let {
+                it?.icon = getDrawable(R.drawable.ic_baseline_block_white_24)
+                it?.isEnabled = false
+            }
+        }
+
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        saveNote()
+    }
+
+    private fun saveNote() {
+        val note = DataManager.notes[notePosition]
+        note.title = binding.textNoteTitle.text.toString()
+        note.text = binding.textNoteText.text.toString()
+        note.course = binding.spinnerCourses.selectedItem as CourseInfo
     }
 }
