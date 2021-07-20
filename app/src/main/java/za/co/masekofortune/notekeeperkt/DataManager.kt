@@ -1,5 +1,6 @@
 package za.co.masekofortune.notekeeperkt
 
+
 object DataManager {
     val courses = HashMap<String, CourseInfo>()
     val notes = ArrayList<NoteInfo>()

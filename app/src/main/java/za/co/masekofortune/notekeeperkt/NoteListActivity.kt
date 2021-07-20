@@ -2,9 +2,10 @@ package za.co.masekofortune.notekeeperkt
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import za.co.masekofortune.notekeeperkt.databinding.ActivityNoteListBinding
+
 
 class NoteListActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNoteListBinding
@@ -16,22 +17,16 @@ class NoteListActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.fab.setOnClickListener {
-            val activityIntent = Intent(this, MainActivity::class.java)
+            val activityIntent = Intent(this, NoteActivity::class.java)
             startActivity(activityIntent)
         }
 
-        binding.listNotes.adapter =
-            ArrayAdapter(this, android.R.layout.simple_list_item_1, DataManager.notes)
-
-        binding.listNotes.setOnItemClickListener { parent, view, position, id ->
-            val activityIntent = Intent(this, MainActivity::class.java)
-            activityIntent.putExtra(NOTE_POSITION, position)
-            startActivity(activityIntent)
-        }
+        binding.listItems.layoutManager = LinearLayoutManager(this)
+        binding.listItems.adapter = NoteRecyclerAdapter(this, DataManager.notes)
     }
 
     override fun onResume() {
         super.onResume()
-        (binding.listNotes.adapter as ArrayAdapter<NoteInfo>).notifyDataSetChanged()
+        binding.listItems.adapter?.notifyDataSetChanged()
     }
 }

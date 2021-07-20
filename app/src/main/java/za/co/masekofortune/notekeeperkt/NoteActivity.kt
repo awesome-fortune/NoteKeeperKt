@@ -6,9 +6,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ArrayAdapter
+import com.google.android.material.snackbar.Snackbar
 import za.co.masekofortune.notekeeperkt.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+
+class NoteActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var notePosition = POSITION_NOT_SET
 
@@ -45,6 +47,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun displayNote() {
+        if (notePosition > DataManager.notes.lastIndex) {
+            showMessage("Note not found")
+            return
+        }
+
         val note = DataManager.notes[notePosition]
         binding.textNoteTitle.setText(note.title)
         binding.textNoteText.setText(note.text)
@@ -62,17 +69,28 @@ class MainActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.action_settings -> true
             R.id.action_next -> {
-                moveNext()
+                if (notePosition < DataManager.notes.lastIndex) {
+                    moveNext()
+                } else {
+                    val message = "No more notes"
+                    showMessage(message)
+                }
+
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
+    private fun showMessage(message: String) {
+        Snackbar.make(binding.textNoteTitle, message, Snackbar.LENGTH_LONG)
+            .show()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
         outState.putInt(NOTE_POSITION, notePosition)
 
-        super.onSaveInstanceState(outState, outPersistentState)
+        super.onSaveInstanceState(outState)
     }
 
     private fun moveNext() {
