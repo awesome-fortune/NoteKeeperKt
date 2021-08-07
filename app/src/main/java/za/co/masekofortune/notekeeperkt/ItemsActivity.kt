@@ -2,8 +2,10 @@ package za.co.masekofortune.notekeeperkt
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
@@ -15,6 +17,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import za.co.masekofortune.notekeeperkt.databinding.ActivityItemsBinding
@@ -27,6 +30,9 @@ class ItemsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
     private val courseLayoutManager by lazy { GridLayoutManager(this, 2) }
     private val noteRecyclerAdapter by lazy { NoteRecyclerAdapter(this, DataManager.notes) }
     private val courseRecyclerAdapter by lazy { CourseRecyclerAdapter(this, DataManager.courses.values.toList()) }
+    private val viewModel: ItemsActivityViewModel by viewModels()
+    private val maxRecentlyViewedNotes = 5
+    val recentlyViewedNotes = ArrayList<NoteInfo>(maxRecentlyViewedNotes)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +47,7 @@ class ItemsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
             startActivity(activityIntent)
         }
 
-        displayNotes()
+        handleDisplaySelection(viewModel.navDrawerDisplaySelection)
 
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
@@ -88,18 +94,14 @@ class ItemsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.nav_notes,
             R.id.nav_courses -> {
-                displayCourses()
+                handleDisplaySelection(item.itemId)
+                viewModel.navDrawerDisplaySelection = item.itemId
             }
-
-            R.id.nav_notes -> {
-                displayNotes()
-            }
-
             R.id.nav_share -> {
                 handleSelection("Don't you think you've shared enough")
             }
-
             R.id.nav_send -> {
                 handleSelection("Send")
             }
@@ -127,6 +129,13 @@ class ItemsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
             drawerLayout.closeDrawer(GravityCompat.START)
         } else {
             super.onBackPressed()
+        }
+    }
+
+    fun handleDisplaySelection(itemId: Int) {
+        when (itemId) {
+            R.id.nav_notes -> { displayNotes() }
+            R.id.nav_courses -> { displayCourses() }
         }
     }
 }
